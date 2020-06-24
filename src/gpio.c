@@ -60,8 +60,8 @@ void GPIO_Config (void)
         GPIOA_CLK_ON;
 
     temp = GPIOA->MODER;    //2 bits por pin
-    temp &= 0xFFFFFC00;    //PA0 - PA4 output
-    temp |= 0x00000155;    //
+    temp &= 0xFFFCF000;    //PA0 - PA4 output; PA5 input; PA8 output
+    temp |= 0x00010155;    //
     GPIOA->MODER = temp;
 
     temp = GPIOA->OTYPER;	//1 bit por pin
@@ -75,7 +75,7 @@ void GPIO_Config (void)
     GPIOA->OSPEEDR = temp;
 
     temp = GPIOA->PUPDR;	//2 bits por pin
-    temp &= 0xFFFFFFFF;
+    temp &= 0xFFFFFFFF;        //PA14 pullup
     temp |= 0x00000000;
     GPIOA->PUPDR = temp;
 
@@ -85,7 +85,7 @@ void GPIO_Config (void)
         GPIOB_CLK_ON;
 
     temp = GPIOB->MODER;	//2 bits por pin
-    temp &= 0xCFFFFCCF;		//PB2 out; PB4 out
+    temp &= 0xCFFFFC0F;		//PB2 out; PB3 input; PB4 out
     temp |= 0x10000110;        //PB14 out
     GPIOB->MODER = temp;
 
@@ -100,8 +100,8 @@ void GPIO_Config (void)
     GPIOB->OSPEEDR = temp;
 
     temp = GPIOB->PUPDR;	//2 bits por pin
-    temp &= 0xFFFFFFFF;
-    temp |= 0x00000000;
+    temp &= 0xFFFFFF3F;        //PB3 pullup
+    temp |= 0x00000040;
     GPIOB->PUPDR = temp;
 
 #endif

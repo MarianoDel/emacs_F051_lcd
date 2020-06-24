@@ -162,6 +162,9 @@ void LCD_ClearScreen (void);
 resp_t LCD_ShowBlink (const char * , const char * , unsigned char, unsigned char);
 resp_t LCD_Scroll1 (const char *);
 resp_t LCD_Scroll2 (const char *);
+void LCD_Writel1 (char * l1);
+void LCD_Writel2 (char * l2);
+    
 
 resp_t FuncShowSelect (const char *);
 resp_t FuncShowSelectv2 (const char *);

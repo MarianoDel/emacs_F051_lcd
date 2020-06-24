@@ -33,6 +33,9 @@
 #define LCD_E_OFF    (GPIOA->BSRR = 0x00100000)
 
 //GPIOA pin5
+#define SWITCH_SET ((GPIOA->IDR & 0x0020) == 0)
+
+
 //GPIOA pin6
 //GPIOA pin7
 
@@ -57,6 +60,10 @@
 //GPIOB pin15
 
 //GPIOA pin8
+#define BUZZER    ((GPIOA->ODR & 0x0100) != 0)
+#define BUZZER_ON    (GPIOA->BSRR = 0x00000100)
+#define BUZZER_OFF    (GPIOA->BSRR = 0x01000000)
+
 //GPIOA pin9
 //GPIOA pin10
 //GPIOA pin11
@@ -70,6 +77,7 @@
 //GPIOA pin15
 
 //GPIOB pin3
+#define SWITCH_O3 ((GPIOB->IDR & 0x0008) == 0)
 
 //GPIOB pin4
 #define CTRL_BKL    ((GPIOB->ODR & 0x0010) != 0)
