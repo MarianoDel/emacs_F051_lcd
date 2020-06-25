@@ -21,7 +21,7 @@
 
 #include "core_cm0.h"
 
-// #include "lcd.h"
+#include "lcd.h"
 #include "lcd_utils.h"
 
 #include <stdio.h>
@@ -64,6 +64,7 @@ typedef enum {
 
 resp_sw_t CheckSET (void);
 resp_sw_t CheckO3 (void);
+void UpdateSwitchesTimeout (void);
 void UpdateSwitches (void);
 resp_t MENU_Main (void);
 
@@ -124,18 +125,24 @@ typedef enum
 buzzer_state_t buzzer_state = BUZZER_INIT;
 unsigned char buzzer_multiple;
 volatile unsigned short buzzer_timeout = 0;
-void UpdateBuzzer (void);
 void BuzzerCommands(unsigned char, unsigned char);
+void UpdateBuzzer (void);
+void UpdateBuzzerTimeout (void);;
 
-volatile unsigned short timer_treatment = 0;
+volatile unsigned char treatment_running = 0;
+volatile unsigned char treatment_running_mins = 0;
+volatile unsigned char treatment_running_secs = 0;
 volatile unsigned short timer_ticker = 0;
+
+volatile unsigned short millis = 0;
 
 void RelayOn (void);
 void RelayOff (void);
 unsigned char RelayIsOn (void);
 unsigned char RelayIsOff (void);
+void UpdateRelay (void);
 void UpdateRelayTimeout (void);
-void RelayTimeout (void);
+
 
 // End To Export ---------------------------------------------------------------
 
@@ -194,28 +201,17 @@ int main(void)
 
 
     //--- Implementacion O3 ---//
-    while (1)
-    {
-        if (CheckSET() > SW_NO)
-        {
-            CTRL_BKL_ON;
-            BUZZER_ON;
-        }
-        else
-        {
-            CTRL_BKL_OFF;
-            BUZZER_OFF;
-        }
-        
-    }
     
     main_state_t main_state = MAIN_INIT;
     char s_lcd [100] = { 0 };
-    unsigned char treatment_time = 0;
     resp_t resp = resp_continue;
-
     unsigned char lcd_l1_was_on = 0;
-    unsigned char ticker = 0;
+    unsigned char last_secs = 0;
+    unsigned char barrita = 0;
+
+    //configuracion desde la memoria
+    unsigned char treatment_time_min = 10;
+    unsigned short ticker = 60000;
 
     LCD_UtilsInit();
     
@@ -225,8 +221,6 @@ int main(void)
         {
         case MAIN_INIT:
             LCD_ClearScreen();
-            treatment_time = 30;
-            
             main_state = MAIN_WELCOME;
             break;
             
@@ -247,7 +241,7 @@ int main(void)
             break;
             
         case MAIN_STAND_BY_0:
-            sprintf (s_lcd, "Tiempo de Generacion: %d", treatment_time);
+            sprintf (s_lcd, "Tiempo de Generacion: %d", treatment_time_min);
             strcat (s_lcd, " minutos - Presione O3 para Generar Ozono o SET para ingresar al Menu");
             main_state++;
             break;
@@ -257,7 +251,9 @@ int main(void)
 
             if (CheckO3() > SW_MIN)
             {
-                timer_treatment = treatment_time;
+                treatment_running_mins = treatment_time_min;
+                treatment_running_secs = 0;
+                
                 main_state = MAIN_START_TREATMENT;
             }
 
@@ -271,21 +267,78 @@ int main(void)
             {
                 LCD_ClearScreen();
                 BuzzerCommands(BUZZER_LONG_CMD, 1);
-                timer_ticker = 10;
+                timer_ticker = ticker;
                 RelayOn();
+
+                treatment_running = 1;
+
                 main_state = MAIN_IN_TREATMENT;
             }
             break;
 
         case MAIN_IN_TREATMENT:
             if (ticker)
-                BuzzerCommands(BUZZER_SHORT_CMD, 3);
+            {
+                if (!timer_ticker)
+                {
+                    BuzzerCommands(BUZZER_SHORT_CMD, 1);
+                    timer_ticker = ticker;
+                }
+            }
 
             if (CheckO3() > SW_MIN)
             {
                 //freno contador aca?
+                treatment_running = 0;
                 main_state = MAIN_GO_PAUSE;
             }
+
+            //Update del Display timer
+            if (last_secs != treatment_running_secs)
+            {
+                last_secs = treatment_running_secs;
+                sprintf(s_lcd, "%02d:%02d         O3", treatment_running_mins, treatment_running_secs);
+                LCD_Writel1(s_lcd);
+            }
+
+            //Update del Display barrita
+            if (!timer_standby)
+            {
+                timer_standby = 300;
+                
+                switch(barrita)
+                {
+                    case 0:
+                        Lcd_SetDDRAM (0x4f);
+                        LCDStartTransmit(0xB0);
+                        // LCD_Writel2("               -");
+                        barrita++;
+                        break;
+
+                    case 1:
+                        Lcd_SetDDRAM (0x4f);
+                        LCDStartTransmit(0x2f);
+                        // LCD_Writel2("               /");
+                        barrita++;
+                        break;
+
+                    case 2:
+                        Lcd_SetDDRAM (0x4f);
+                        LCDStartTransmit(0x7C);
+                        // LCD_Writel2("               -");
+                        barrita = 0;
+                        break;
+
+                default:
+                    barrita = 0;
+                    break;
+                }
+            }
+            
+
+            //terminacion de tratamiento
+            if ((treatment_running_mins == 0) && (treatment_running_secs == 0))
+                main_state = MAIN_ENDING_TREATMENT;
             
             break;
             
@@ -320,14 +373,11 @@ int main(void)
             resp = LCD_Scroll2 ("Presione O3 para continuar o SET para terminar");
 
             if (CheckO3() > SW_MIN)
-            {
                 main_state = MAIN_RESUMING;
-            }
 
             if (CheckSET() > SW_MIN)
-            {
                 main_state = MAIN_ENDING_TREATMENT;
-            }
+
             break;
 
         case MAIN_RESUMING:
@@ -358,6 +408,10 @@ int main(void)
             main_state = MAIN_INIT;
             break;
         }
+
+        UpdateRelay();
+        UpdateSwitches();
+        UpdateBuzzer();
     }
 
     //--- Fin implementacion O3 ---//
@@ -538,11 +592,17 @@ resp_sw_t CheckSET (void)
 
 
 unsigned char switches_timer = 0;
-void UpdateSwitches (void)
+
+void UpdateSwitchesTimeout (void)
 {
     if (switches_timer)
         switches_timer--;
-    else
+}
+
+
+void UpdateSwitches (void)
+{
+    if (!switches_timer)
     {
         if (SWITCH_O3)
             sw_o3_cntr++;
@@ -564,6 +624,13 @@ void UpdateSwitches (void)
         
         switches_timer = SWITCHES_TIMER_RELOAD;
     }       
+}
+
+
+void UpdateBuzzerTimeout (void)
+{
+    if (buzzer_timeout)
+        buzzer_timeout--;
 }
 
 
@@ -831,10 +898,197 @@ void UpdateRelay (void)
 }
 
 
+void UpdateTreatmentTimeout (void)
+{
+    if (treatment_running)
+    {
+        if (millis)
+            millis--;
+        else
+        {
+            if (treatment_running_secs)
+            {
+                treatment_running_secs--;
+                millis = 1000;
+            }
+            else
+            {
+                if (treatment_running_mins)
+                {
+                    treatment_running_mins--;
+                    treatment_running_secs = 59;
+                    millis = 1000;
+                }
+            }
+        }
+    }
+}
+
+
+typedef enum {
+    MENU_INIT = 0,
+    MENU_SHOW_TREATMENT_TIME,
+    MENU_SHOW_ALARM,
+    MENU_SHOW_TICKER,
+    MENU_SHOW_END_CONF,
+    MENU_CONF_TREATMENT_TIME,
+    MENU_CONF_ALARM,
+    MENU_CONF_TICKER,
+    MENU_END_CONF
+
+} menu_state_t;
+
+menu_state_t menu_state = MENU_INIT;
+//funcion de seleccion del menu principal
+//devuelve nueva selección o estado anterior
 resp_t MENU_Main (void)
 {
     resp_t resp = resp_continue;
+    sw_actions_t actions = selection_none;
 
+    switch (menu_state)
+    {
+    case MENU_INIT:
+        resp = LCD_ShowBlink ("    Entering    ",
+                              "  Config Menu   ",
+                              1,
+                              BLINK_DIRECT);
+
+        if (resp == resp_finish)
+        {
+            resp = resp_continue;
+            if (CheckSET() == SW_NO)
+                menu_state++;
+        }
+        break;
+
+    case MENU_SHOW_TREATMENT_TIME:
+        if (CheckSET() > SW_NO)
+            actions = selection_enter;
+
+        if (CheckO3() > SW_NO)
+            actions = selection_dwn;
+        
+        resp = LCD_ShowSelectv2((const char *) "Treatment Time  ",
+                                actions);
+
+        if (resp == resp_change)
+            menu_state = MENU_SHOW_ALARM;
+
+        if (resp == resp_change_all_up)
+            menu_state = MENU_SHOW_END_CONF;
+        
+        if (resp == resp_selected)
+            menu_state = MENU_CONF_TREATMENT_TIME;
+
+        break;
+
+    case MENU_SHOW_ALARM:
+        if (CheckSET() > SW_NO)
+            actions = selection_enter;
+
+        if (CheckO3() > SW_NO)
+            actions = selection_dwn;
+
+        resp = LCD_ShowSelectv2((const char *) "Alarm           ",
+                                actions);
+
+        if (resp == resp_change)
+            menu_state = MENU_SHOW_TICKER;
+
+        if (resp == resp_change_all_up)
+            menu_state = MENU_SHOW_TREATMENT_TIME;
+
+        if (resp == resp_selected)
+            menu_state = MENU_CONF_ALARM;
+
+        break;
+
+    case MENU_SHOW_TICKER:
+        if (CheckSET() > SW_NO)
+            actions = selection_enter;
+
+        if (CheckO3() > SW_NO)
+            actions = selection_dwn;
+
+        resp = LCD_ShowSelectv2((const char *) "Ticker          ",
+                                actions);
+
+        if (resp == resp_change)
+            menu_state = MENU_SHOW_END_CONF;
+
+        if (resp == resp_change_all_up)
+            menu_state = MENU_SHOW_END_CONF;
+
+        if (resp == resp_selected)
+            menu_state = MENU_CONF_TICKER;
+
+        break;
+
+
+    case MENU_SHOW_END_CONF:
+        if (CheckSET() > SW_NO)
+            actions = selection_enter;
+
+        if (CheckO3() > SW_NO)
+            actions = selection_dwn;
+
+        resp = LCD_ShowSelectv2((const char *) "End Configuration",
+                                actions);
+
+        if (resp == resp_change)
+            menu_state = MENU_SHOW_TREATMENT_TIME;
+
+        if (resp == resp_change_all_up)
+            menu_state = MENU_SHOW_TREATMENT_TIME;
+
+        if (resp == resp_selected)
+            menu_state = MENU_END_CONF;
+
+        break;
+        
+
+    case MENU_CONF_TREATMENT_TIME:
+        // FuncShowBlink ((const char *) "Stand Alone     ", (const char *) "Selected...     ", 0, BLINK_NO);
+        // /*
+        //   LCD_1ER_RENGLON;
+        //   LCDTransmitStr((const char *) "Stand Alone     ");
+        //   LCD_2DO_RENGLON;
+        //   LCDTransmitStr((const char *) "Selected...     ");
+        // */
+        // menu_state++;
+        break;
+
+    case MENU_CONF_ALARM:
+        // if (CheckS2() == S_NO)
+        // {
+        //     resp = MENU_SHOW_STANDALONE_SELECTED;
+        //     menu_state = MENU_INIT;
+        // }
+        break;
+
+    case MENU_CONF_TICKER:
+        // FuncShowBlink ((const char *) "Grouped         ", (const char *) "Selected...     ", 0, BLINK_NO);
+        // /*
+        //   LCD_1ER_RENGLON;
+        //   LCDTransmitStr((const char *) "Grouped         ");
+        //   LCD_2DO_RENGLON;
+        //   LCDTransmitStr((const char *) "Selected...     ");
+        // */
+        // menu_state++;
+        break;
+
+
+    case MENU_END_CONF:
+        menu_state = MENU_INIT;
+        resp = resp_finish;
+        break;
+        
+    default:
+        menu_state = MENU_INIT;
+        break;
+    }
+    
     return resp;
 }
 
@@ -850,11 +1104,19 @@ void TimingDelay_Decrement(void)
     if (timer_led)
         timer_led--;
 
+    if (timer_ticker)
+        timer_ticker--;
+
+
     LCD_UpdateTimer();
 
-    UpdateSwitches();
+    UpdateSwitchesTimeout();
+
+    UpdateBuzzerTimeout();    
 
     UpdateRelayTimeout();
+
+    UpdateTreatmentTimeout();
 }
 
 //--- end of file ---//

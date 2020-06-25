@@ -53,6 +53,16 @@
 #define LCD_3ER_RENGLON Lcd_SetDDRAM(0x14)
 #define LCD_4TO_RENGLON Lcd_SetDDRAM(0x54)
 
+// Switches actions
+typedef enum {
+    selection_none = 0,
+    selection_up,
+    selection_dwn,
+    selection_enter,
+    selection_back
+
+} sw_actions_t;
+
 //estados de la funcion BLINKING
 #define BLINKING_INIT       0
 #define BLINKING_MARK_D     1
@@ -164,10 +174,10 @@ resp_t LCD_Scroll1 (const char *);
 resp_t LCD_Scroll2 (const char *);
 void LCD_Writel1 (char * l1);
 void LCD_Writel2 (char * l2);
-    
+resp_t LCD_ShowSelectv2 (const char *, sw_actions_t);    
 
 resp_t FuncShowSelect (const char *);
-resp_t FuncShowSelectv2 (const char *);
+
 resp_t FuncOptions (const char *, const char *, unsigned char *, unsigned char, unsigned char);
 resp_t FuncOptionsOnOff (unsigned char *);
 

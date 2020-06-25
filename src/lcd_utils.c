@@ -378,7 +378,7 @@ resp_t LCD_Scroll2 (const char * p_text)
 //////////////////////////////////////////////////////////////////////////////////
 // We need Switches Functions for the following functions CheckS1() & CheckS2() //
 //////////////////////////////////////////////////////////////////////////////////
-#ifdef LCD_USE_SWITCHES_FOR_MENUES_FUNCTIONS
+
 //funcion que muestra el string enviado en formato de menu
 //ademas v2 agrega el cont o select en el segundo renglon
 //respuestas
@@ -386,9 +386,9 @@ resp_t LCD_Scroll2 (const char * p_text)
 //resp_selected
 //resp_change
 //resp_change_all_up
-unsigned char FuncShowSelectv2 (const char * p_text)
+resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
 {
-    unsigned char resp = resp_continue;
+    resp_t resp = resp_continue;
 
     switch (show_select_state)
     {
@@ -398,7 +398,8 @@ unsigned char FuncShowSelectv2 (const char * p_text)
         LCDTransmitStr((const char *) "Cnt Slct");
 #endif
 #ifdef LINE_LENGTH_16        
-        LCDTransmitStr((const char *) "Cont.     Select");
+        // LCDTransmitStr((const char *) "Cont.     Select");
+        LCDTransmitStr((const char *) "SET    or    < >");        
 #endif        
         show_select_state++;
         break;
@@ -419,11 +420,11 @@ unsigned char FuncShowSelectv2 (const char * p_text)
             show_select_state++;
         }
 
-        //check s1 y s2
-        if (CheckS1() > S_NO)
+        // check switches actions
+        if ((sw_action == selection_up) || (sw_action == selection_dwn))
             show_select_state = SHOW_SELECT_CHANGE;
 
-        if (CheckS2() > S_NO)
+        if (sw_action == selection_enter)
             show_select_state = SHOW_SELECT_SELECTED;
 
         break;
@@ -434,11 +435,11 @@ unsigned char FuncShowSelectv2 (const char * p_text)
             show_select_state = SHOW_SELECT_1;
         }
 
-        //check s1 y s2
-        if (CheckS1() > S_NO)
+        // check switches actions
+        if ((sw_action == selection_up) || (sw_action == selection_dwn))
             show_select_state = SHOW_SELECT_CHANGE;
 
-        if (CheckS2() > S_NO)
+        if (sw_action == selection_enter)
             show_select_state = SHOW_SELECT_SELECTED;
 
         break;
@@ -457,7 +458,7 @@ unsigned char FuncShowSelectv2 (const char * p_text)
         break;
 
     case SHOW_SELECT_SELECTED_1:
-        if (CheckS2() == S_NO)
+        if (sw_action == selection_none)
         {
             resp = resp_selected;
             show_select_state = SHOW_SELECT_INIT;
@@ -478,21 +479,150 @@ unsigned char FuncShowSelectv2 (const char * p_text)
         break;
 
     case SHOW_SELECT_CHANGE_1:
-        if (CheckS1() == S_NO)
+        if (sw_action == selection_none)
         {
             resp = resp_change;
             show_select_state = SHOW_SELECT_INIT;
         }
+        // if (CheckS1() == S_NO)
+        // {
+        //     resp = resp_change;
+        //     show_select_state = SHOW_SELECT_INIT;
+        // }
 
-        if (CheckS1() > S_HALF)
-        {
-            resp = resp_change_all_up;
-            show_select_state = SHOW_SELECT_INIT;
-        }
+        // if (CheckS1() > S_HALF)
+        // {
+        //     resp = resp_change_all_up;
+        //     show_select_state = SHOW_SELECT_INIT;
+        // }
         break;
 
     default:
         show_select_state = SHOW_SELECT_INIT;
+        break;
+    }
+
+    return resp;
+}
+
+
+//recibe:
+// puntero al primer renglon de seleccion solo 12 caracteres
+// puntero al valor OFF->0 ON->1
+// acciones a realizar
+//devuelve:
+// resp_continue o resp_finish
+// el valor de seleccion final en el puntero al valor
+resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
+                                unsigned char * bool_value,
+                                sw_actions_t actions)
+{
+    char p [5] = { 0 };
+    resp_t resp = resp_continue;
+
+    switch (options_state)
+    {
+    case OPTIONS_ONOFF_INIT:
+        LCD_1ER_RENGLON;
+        LCDTransmitStr(primer_renglon);
+        LCD_2DO_RENGLON;
+        LCDTransmitStr((const char *) "SET    or    < >");        
+
+        // show_select_timer = TT_SHOW_SELECT_IN_ON;
+        show_select_timer = 0;        
+        options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
+        break;
+
+
+    case OPTIONS_ONOFF_WAIT_IN_ON:
+        if (CheckS1() > S_NO)
+        {
+            options_state = OPTIONS_ONOFF_CHANGE_OPTION;
+        }
+
+        if (CheckS2() > S_NO)
+        {
+            options_state = OPTIONS_ONOFF_SELECT_OPTION;
+            show_select_timer = 200;
+        }
+
+        if (!show_select_timer)
+        {
+            Lcd_SetDDRAM(12);
+            LCDTransmitStr("    ");
+            
+            show_select_timer = TT_SHOW_SELECT_IN_OFF;
+            options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
+        }
+        break;
+
+    case OPTIONS_ONOFF_WAIT_IN_OFF:
+        if ((actions == selection_up) || (actions == selection_dwn))
+        {
+            options_state = OPTIONS_ONOFF_CHANGE_OPTION;
+        }
+
+        if (actions == selection_enter)
+        {            
+            options_state = OPTIONS_ONOFF_SELECT_OPTION;
+            show_select_timer = 200;
+        }
+
+        if (!show_select_timer)
+        {
+            Lcd_SetDDRAM(12);
+            if (*bool_value)
+                strcat(p, " ON ");
+            else
+                strcat(p, " OFF");
+            
+            LCDTransmitStr(p);
+            show_select_timer = TT_SHOW_SELECT_IN_ON;
+            options_state = OPTIONS_ONOFF_WAIT_IN_ON;
+        }
+        break;
+        
+
+    case OPTIONS_ONOFF_SELECT_OPTION:
+        if (!show_select_timer)
+        {
+            if (options_curr_sel == 2)    //esto es un end, en bool_value ya esta lo elegido
+            {
+                *bool_value = options_mark;
+                options_state = OPTIONS_INIT;                
+                resp = resp_finish;
+            }
+            else
+            {
+                if (options_curr_sel)
+                    options_mark = 0;
+                else
+                    options_mark = 1;
+
+                options_state = OPTIONS_ONOFF_REDRAW;
+            }
+        }
+        break;
+
+    case OPTIONS_ONOFF_CHANGE_OPTION:
+        
+        if (options_curr_sel < 2)
+            options_curr_sel++;
+        else
+            options_curr_sel = 0;
+    
+        options_state = OPTIONS_ONOFF_WAIT_FREE_S1;
+        break;
+
+    case OPTIONS_ONOFF_WAIT_FREE_S1:
+        if (CheckS1() == S_NO)
+        {
+            options_state = OPTIONS_ONOFF_REDRAW;
+        }
+        break;
+
+    default:
+        options_state = OPTIONS_ONOFF_INIT;
         break;
     }
 
@@ -505,7 +635,7 @@ void FuncShowSelectv2Reset (void)
     show_select_state = SHOW_SELECT_INIT;
 }
 
-
+#ifdef LCD_USE_SWITCHES_FOR_MENUES_FUNCTIONS
 //recibe el primer renglon y el segundo
 //recibe un puntero a las posiciones de memoria de los asteriscos
 //recibe una variable de cantidad de opciones y otra variable con la primera opcion a la que apunta
@@ -636,6 +766,8 @@ unsigned char FuncOptions (const char * p_text1, const char * p_text2,
 
     return resp;
 }
+
+
 
 
 //recibe un puntero a la variable de seleccion original
@@ -783,6 +915,7 @@ unsigned char FuncOptionsOnOff (unsigned char * bool_value)
 
     return resp;
 }
+
 
 void FuncOptionsReset (void)
 {
