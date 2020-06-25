@@ -960,6 +960,7 @@ resp_t MENU_Main (mem_bkp_t * configurations)
     resp_t resp = resp_continue;
     sw_actions_t actions = selection_none;
     unsigned char onoff = 0;
+    unsigned short time = 0;
 
     switch (menu_state)
     {
@@ -1066,14 +1067,25 @@ resp_t MENU_Main (mem_bkp_t * configurations)
         
 
     case MENU_CONF_TREATMENT_TIME:
-        // FuncShowBlink ((const char *) "Stand Alone     ", (const char *) "Selected...     ", 0, BLINK_NO);
-        // /*
-        //   LCD_1ER_RENGLON;
-        //   LCDTransmitStr((const char *) "Stand Alone     ");
-        //   LCD_2DO_RENGLON;
-        //   LCDTransmitStr((const char *) "Selected...     ");
-        // */
-        // menu_state++;
+        if (CheckSET() > SW_NO)
+            actions = selection_enter;
+
+        if (CheckO3() > SW_NO)
+            actions = selection_dwn;
+
+        time = configurations->treatment_time_min;
+        resp = LCD_EncoderChange("minutos:        ",
+                                 &time,
+                                 1,
+                                 20,
+                                 actions);
+
+        if (resp == resp_finish)
+        {
+            configurations->treatment_time_min = time;
+            menu_state = MENU_SHOW_TREATMENT_TIME;
+            resp = resp_continue;
+        }
         break;
 
     case MENU_CONF_ALARM:

@@ -133,8 +133,11 @@ typedef enum {
 #define SCROLL_FINISH			2
 
 //estados de la funcion CHANGE
-#define CHANGE_INIT					0
-#define CHANGE_WAIT_SELECT			1
+#define CHANGE_INIT        0
+#define CHANGE_WAIT_SELECT_IN_ON    1
+#define CHANGE_WAIT_SELECT_IN_OFF    2
+#define CHANGE_SELECT_DONE    3
+
 
 
 //modos de change
@@ -176,6 +179,7 @@ void LCD_Writel1 (char * l1);
 void LCD_Writel2 (char * l2);
 resp_t LCD_ShowSelectv2 (const char *, sw_actions_t);    
 resp_t LCD_EncoderOptionsOnOff (char *, unsigned char *, sw_actions_t);
+resp_t LCD_EncoderChange (char *, unsigned short *, unsigned short, unsigned short, sw_actions_t);
 
 resp_t FuncShowSelect (const char *);
 

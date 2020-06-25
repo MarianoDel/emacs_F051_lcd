@@ -532,6 +532,13 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
                 options_curr_sel = 1;
         }
 
+        if (actions == selection_enter)
+        {
+            LCD_2DO_RENGLON;
+            LCDTransmitStr((const char *) "Selected...     ");
+            options_state = OPTIONS_ONOFF_SELECT_OPTION;
+        }
+
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(12);
@@ -592,6 +599,125 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
 
     default:
         options_state = OPTIONS_ONOFF_INIT;
+        break;
+    }
+
+    return resp;
+}
+
+
+
+//recibe:
+// el primer renglon
+// el valor de default, minimo y maximo permitido
+// la accion del switch
+//devuelve:
+// en el valor de default ultima seleccion
+// resp_continue o resp_finish si termino la seleccion
+resp_t LCD_EncoderChange (char * primer_renglon,
+                          unsigned short * orig_value,
+                          unsigned short min_val,
+                          unsigned short max_val,
+                          sw_actions_t actions)
+{
+    resp_t resp = resp_continue;
+    char s_current [20];
+
+    switch (change_state)
+    {
+    case CHANGE_INIT:
+        LCD_1ER_RENGLON;
+        LCDTransmitStr(primer_renglon);
+        LCD_2DO_RENGLON;
+        LCDTransmitStr((const char *) "SET    or    < >");        
+
+        change_current_val = *orig_value;
+        show_select_timer = 0;        
+        change_state = CHANGE_WAIT_SELECT_IN_OFF;
+        break;
+
+    case CHANGE_WAIT_SELECT_IN_ON:
+        if (actions == selection_up) 
+        {
+            if (change_current_val < max_val)
+            {
+                change_current_val++;
+                Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
+                sprintf(s_current, "%02d", change_current_val);
+                LCDTransmitStr(s_current);
+            }
+
+
+            show_select_timer = TT_SHOW_SELECT_IN_ON;
+            
+            LCD_2DO_RENGLON;
+            LCDTransmitStr((const char *) "SET    or    ++>");                    
+        }
+
+        if (actions == selection_dwn) 
+        {
+            if (change_current_val > min_val)
+            {
+                change_current_val--;
+                Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
+                sprintf(s_current, "%02d", change_current_val);
+                LCDTransmitStr(s_current);
+            }
+
+            show_select_timer = TT_SHOW_SELECT_IN_ON;
+            
+            LCD_2DO_RENGLON;
+            LCDTransmitStr((const char *) "SET    or    <--");
+        }
+
+        if (actions == selection_enter)
+        {
+            LCD_2DO_RENGLON;
+            LCDTransmitStr((const char *) "Selected...     ");
+            change_state = CHANGE_SELECT_DONE;
+        }
+        
+        if (!show_select_timer)
+        {
+            Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
+            LCDTransmitStr("  ");
+            LCD_2DO_RENGLON;
+            LCDTransmitStr((const char *) "SET    or    < >");        
+            show_select_timer = TT_SHOW_SELECT_IN_OFF;
+            change_state = CHANGE_WAIT_SELECT_IN_OFF;
+        }
+        break;
+
+    case CHANGE_WAIT_SELECT_IN_OFF:
+        //no hago cambios en apagado, agoto el timer para tener cambios siempre en ON
+        if ((actions == selection_up) ||
+            (actions == selection_dwn) ||
+            (actions == selection_enter))
+        {
+            show_select_timer = 0;
+        }
+        
+        if (!show_select_timer)
+        {
+            Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
+            sprintf(s_current, "%02d", change_current_val);
+            LCDTransmitStr(s_current);
+            show_select_timer = TT_SHOW_SELECT_IN_ON;
+            change_state = CHANGE_WAIT_SELECT_IN_ON;
+        }        
+        break;
+
+    case CHANGE_SELECT_DONE:
+        if (actions == selection_none)
+        {
+            *orig_value = change_current_val;
+            change_state = CHANGE_INIT;
+            resp = resp_finish;
+        }
+        break;
+        
+    default:
+        change_state = CHANGE_INIT;
         break;
     }
 
