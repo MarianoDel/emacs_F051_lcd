@@ -484,17 +484,6 @@ resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
             resp = resp_change;
             show_select_state = SHOW_SELECT_INIT;
         }
-        // if (CheckS1() == S_NO)
-        // {
-        //     resp = resp_change;
-        //     show_select_state = SHOW_SELECT_INIT;
-        // }
-
-        // if (CheckS1() > S_HALF)
-        // {
-        //     resp = resp_change_all_up;
-        //     show_select_state = SHOW_SELECT_INIT;
-        // }
         break;
 
     default:
@@ -517,7 +506,6 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
                                 unsigned char * bool_value,
                                 sw_actions_t actions)
 {
-    char p [5] = { 0 };
     resp_t resp = resp_continue;
 
     switch (options_state)
@@ -529,21 +517,20 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         LCDTransmitStr((const char *) "SET    or    < >");        
 
         // show_select_timer = TT_SHOW_SELECT_IN_ON;
+        options_curr_sel = *bool_value;
         show_select_timer = 0;        
         options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
         break;
 
 
     case OPTIONS_ONOFF_WAIT_IN_ON:
-        if (CheckS1() > S_NO)
+        if ((actions == selection_up) || (actions == selection_dwn))
         {
             options_state = OPTIONS_ONOFF_CHANGE_OPTION;
-        }
-
-        if (CheckS2() > S_NO)
-        {
-            options_state = OPTIONS_ONOFF_SELECT_OPTION;
-            show_select_timer = 200;
+            if (options_curr_sel)
+                options_curr_sel = 0;
+            else
+                options_curr_sel = 1;
         }
 
         if (!show_select_timer)
@@ -560,23 +547,28 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         if ((actions == selection_up) || (actions == selection_dwn))
         {
             options_state = OPTIONS_ONOFF_CHANGE_OPTION;
+            show_select_timer = 0;
+            if (options_curr_sel)
+                options_curr_sel = 0;
+            else
+                options_curr_sel = 1;
         }
 
         if (actions == selection_enter)
-        {            
+        {
+            LCD_2DO_RENGLON;
+            LCDTransmitStr((const char *) "Selected...     ");
             options_state = OPTIONS_ONOFF_SELECT_OPTION;
-            show_select_timer = 200;
         }
 
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(12);
-            if (*bool_value)
-                strcat(p, " ON ");
+            if (options_curr_sel)
+                LCDTransmitStr(" ON ");
             else
-                strcat(p, " OFF");
-            
-            LCDTransmitStr(p);
+                LCDTransmitStr(" OFF");
+
             show_select_timer = TT_SHOW_SELECT_IN_ON;
             options_state = OPTIONS_ONOFF_WAIT_IN_ON;
         }
@@ -584,41 +576,18 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         
 
     case OPTIONS_ONOFF_SELECT_OPTION:
-        if (!show_select_timer)
+        if (actions == selection_none)
         {
-            if (options_curr_sel == 2)    //esto es un end, en bool_value ya esta lo elegido
-            {
-                *bool_value = options_mark;
-                options_state = OPTIONS_INIT;                
-                resp = resp_finish;
-            }
-            else
-            {
-                if (options_curr_sel)
-                    options_mark = 0;
-                else
-                    options_mark = 1;
-
-                options_state = OPTIONS_ONOFF_REDRAW;
-            }
+            *bool_value = options_curr_sel;
+            options_state = OPTIONS_INIT;                
+            resp = resp_finish;
         }
         break;
 
     case OPTIONS_ONOFF_CHANGE_OPTION:
+        if (actions == selection_none)
+            options_state = OPTIONS_ONOFF_WAIT_IN_ON;
         
-        if (options_curr_sel < 2)
-            options_curr_sel++;
-        else
-            options_curr_sel = 0;
-    
-        options_state = OPTIONS_ONOFF_WAIT_FREE_S1;
-        break;
-
-    case OPTIONS_ONOFF_WAIT_FREE_S1:
-        if (CheckS1() == S_NO)
-        {
-            options_state = OPTIONS_ONOFF_REDRAW;
-        }
         break;
 
     default:

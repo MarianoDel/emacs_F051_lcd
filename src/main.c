@@ -54,6 +54,15 @@ volatile unsigned short timer_standby = 0;
 void TimingDelay_Decrement(void);
 
 // To export -------------------------------------------------------------------
+typedef struct {
+    unsigned char treatment_time_min;
+    unsigned char alarms_onoff;
+    unsigned char ticker_onoff;
+    unsigned short ticker_time;
+    
+} mem_bkp_t;
+
+
 typedef enum {
     SW_NO = 0,
     SW_MIN,
@@ -66,7 +75,7 @@ resp_sw_t CheckSET (void);
 resp_sw_t CheckO3 (void);
 void UpdateSwitchesTimeout (void);
 void UpdateSwitches (void);
-resp_t MENU_Main (void);
+resp_t MENU_Main (mem_bkp_t *);
 
 // Main Program States
 typedef enum
@@ -210,6 +219,10 @@ int main(void)
     unsigned char barrita = 0;
 
     //configuracion desde la memoria
+    // configuration_in_mem.treatment_time_min = 10;
+    // configuration_in_mem.ticker_time = 60000;
+    mem_bkp_t configurations_in_mem;
+    configurations_in_mem.ticker_onoff = 1;
     unsigned char treatment_time_min = 10;
     unsigned short ticker = 60000;
 
@@ -395,7 +408,7 @@ int main(void)
             break;
             
         case MAIN_IN_MAIN_MENU:
-            resp = MENU_Main();
+            resp = MENU_Main(&configurations_in_mem);
 
             if (resp == resp_finish)
                 main_state = MAIN_INIT;
@@ -925,6 +938,7 @@ void UpdateTreatmentTimeout (void)
 }
 
 
+
 typedef enum {
     MENU_INIT = 0,
     MENU_SHOW_TREATMENT_TIME,
@@ -941,10 +955,11 @@ typedef enum {
 menu_state_t menu_state = MENU_INIT;
 //funcion de seleccion del menu principal
 //devuelve nueva selección o estado anterior
-resp_t MENU_Main (void)
+resp_t MENU_Main (mem_bkp_t * configurations)
 {
     resp_t resp = resp_continue;
     sw_actions_t actions = selection_none;
+    unsigned char onoff = 0;
 
     switch (menu_state)
     {
@@ -1021,8 +1036,10 @@ resp_t MENU_Main (void)
             menu_state = MENU_SHOW_END_CONF;
 
         if (resp == resp_selected)
+        {
+            onoff = configurations->ticker_onoff;
             menu_state = MENU_CONF_TICKER;
-
+        }
         break;
 
 
@@ -1060,22 +1077,43 @@ resp_t MENU_Main (void)
         break;
 
     case MENU_CONF_ALARM:
-        // if (CheckS2() == S_NO)
-        // {
-        //     resp = MENU_SHOW_STANDALONE_SELECTED;
-        //     menu_state = MENU_INIT;
-        // }
+        if (CheckSET() > SW_NO)
+            actions = selection_enter;
+
+        if (CheckO3() > SW_NO)
+            actions = selection_dwn;
+
+        onoff = configurations->alarms_onoff;
+        resp = LCD_EncoderOptionsOnOff("Alarm           ",
+                                       &onoff,
+                                       actions);
+
+        if (resp == resp_finish)
+        {
+            configurations->alarms_onoff = onoff;            
+            menu_state = MENU_SHOW_TREATMENT_TIME;
+            resp = resp_continue;
+        }
         break;
 
     case MENU_CONF_TICKER:
-        // FuncShowBlink ((const char *) "Grouped         ", (const char *) "Selected...     ", 0, BLINK_NO);
-        // /*
-        //   LCD_1ER_RENGLON;
-        //   LCDTransmitStr((const char *) "Grouped         ");
-        //   LCD_2DO_RENGLON;
-        //   LCDTransmitStr((const char *) "Selected...     ");
-        // */
-        // menu_state++;
+        if (CheckSET() > SW_NO)
+            actions = selection_enter;
+
+        if (CheckO3() > SW_NO)
+            actions = selection_dwn;
+
+        onoff = configurations->ticker_onoff;
+        resp = LCD_EncoderOptionsOnOff("Ticker          ",
+                                       &onoff,
+                                       actions);
+
+        if (resp == resp_finish)
+        {
+            configurations->ticker_onoff = onoff;
+            menu_state = MENU_SHOW_TREATMENT_TIME;
+            resp = resp_continue;
+        }
         break;
 
 
