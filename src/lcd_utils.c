@@ -516,7 +516,6 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         LCD_2DO_RENGLON;
         LCDTransmitStr((const char *) "SET    or    < >");        
 
-        // show_select_timer = TT_SHOW_SELECT_IN_ON;
         options_curr_sel = *bool_value;
         show_select_timer = 0;        
         options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
@@ -547,7 +546,6 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         if ((actions == selection_up) || (actions == selection_dwn))
         {
             options_state = OPTIONS_ONOFF_CHANGE_OPTION;
-            show_select_timer = 0;
             if (options_curr_sel)
                 options_curr_sel = 0;
             else
@@ -586,8 +584,10 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
 
     case OPTIONS_ONOFF_CHANGE_OPTION:
         if (actions == selection_none)
-            options_state = OPTIONS_ONOFF_WAIT_IN_ON;
-        
+        {
+            options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
+            show_select_timer = 0;
+        }
         break;
 
     default:
