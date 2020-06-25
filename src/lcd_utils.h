@@ -136,7 +136,8 @@ typedef enum {
 #define CHANGE_INIT        0
 #define CHANGE_WAIT_SELECT_IN_ON    1
 #define CHANGE_WAIT_SELECT_IN_OFF    2
-#define CHANGE_SELECT_DONE    3
+#define CHANGE_SHOW_AGAIN    3
+#define CHANGE_SELECT_DONE    4
 
 
 
@@ -173,6 +174,8 @@ void LCD_UtilsInit (void);
 void LCD_UpdateTimer (void);
 void LCD_ClearScreen (void);
 resp_t LCD_ShowBlink (const char * , const char * , unsigned char, unsigned char);
+void LCD_Scroll1Reset (void);
+void LCD_Scroll2Reset (void);
 resp_t LCD_Scroll1 (const char *);
 resp_t LCD_Scroll2 (const char *);
 void LCD_Writel1 (char * l1);

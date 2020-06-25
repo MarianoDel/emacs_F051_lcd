@@ -258,6 +258,12 @@ resp_t LCD_ShowBlink (const char * p_text1, const char * p_text2, unsigned char 
 }
 
 
+void LCD_Scroll1Reset (void)
+{
+    scroll1_state = SCROLL_INIT;
+}
+
+
 //hace un scroll en el primer renglon del lcd
 //recibe un puntero al string
 //devuelve resp_continue o resp_finish
@@ -313,6 +319,12 @@ resp_t LCD_Scroll1 (const char * p_text)
     }
 
     return resp;
+}
+
+
+void LCD_Scroll2Reset (void)
+{
+    scroll2_state = SCROLL_INIT;
 }
 
 
@@ -642,14 +654,10 @@ resp_t LCD_EncoderChange (char * primer_renglon,
             if (change_current_val < max_val)
             {
                 change_current_val++;
-                Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
-                sprintf(s_current, "%02d", change_current_val);
-                LCDTransmitStr(s_current);
+                change_state = CHANGE_SHOW_AGAIN;                
             }
 
-
             show_select_timer = TT_SHOW_SELECT_IN_ON;
-            
             LCD_2DO_RENGLON;
             LCDTransmitStr((const char *) "SET    or    ++>");                    
         }
@@ -659,13 +667,10 @@ resp_t LCD_EncoderChange (char * primer_renglon,
             if (change_current_val > min_val)
             {
                 change_current_val--;
-                Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
-                sprintf(s_current, "%02d", change_current_val);
-                LCDTransmitStr(s_current);
+                change_state = CHANGE_SHOW_AGAIN;
             }
 
             show_select_timer = TT_SHOW_SELECT_IN_ON;
-            
             LCD_2DO_RENGLON;
             LCDTransmitStr((const char *) "SET    or    <--");
         }
@@ -699,12 +704,16 @@ resp_t LCD_EncoderChange (char * primer_renglon,
         
         if (!show_select_timer)
         {
-            Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
-            sprintf(s_current, "%02d", change_current_val);
-            LCDTransmitStr(s_current);
             show_select_timer = TT_SHOW_SELECT_IN_ON;
-            change_state = CHANGE_WAIT_SELECT_IN_ON;
+            change_state = CHANGE_SHOW_AGAIN;
         }        
+        break;
+
+    case CHANGE_SHOW_AGAIN:
+        Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
+        sprintf(s_current, "%02d", change_current_val);
+        LCDTransmitStr(s_current);
+        change_state = CHANGE_WAIT_SELECT_IN_ON;
         break;
 
     case CHANGE_SELECT_DONE:

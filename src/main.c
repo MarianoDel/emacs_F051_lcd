@@ -235,6 +235,7 @@ int main(void)
         case MAIN_INIT:
             LCD_ClearScreen();
             main_state = MAIN_WELCOME;
+            LCD_Scroll1Reset();
             break;
             
         case MAIN_WELCOME:
@@ -361,6 +362,7 @@ int main(void)
                 LCD_ClearScreen();
                 BuzzerCommands(BUZZER_SHORT_CMD, 3);
                 RelayOff();
+                LCD_Scroll2Reset();
                 main_state = MAIN_PAUSED;
             }
             break;
