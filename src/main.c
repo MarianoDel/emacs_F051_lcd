@@ -231,33 +231,37 @@ int main(void)
     // --- Fin LCD Test CGRAM ---//
 
     //--- LCD Test BigNumbers ---//
-    LCD_UtilsInit();
-    LCD_BigNumbersInit();
-    while (1)
-    {
-        LCD_ClearScreen();
+    // LCD_UtilsInit();
+    // LCD_BigNumbersInit();
+    // while (1)
+    // {
+    //     LCD_ClearScreen();
+    //     // Lcd_SetDDRAM(0x06);
+    //     // Lcd_senddata(0xa5);
+    //     // Lcd_SetDDRAM(0x46);
+    //     // Lcd_senddata(0xa5);
         
-        for (unsigned char i = 0; i < 10; i++)
-        {
-            LCD_BigNumbers(0,i);
-            Wait_ms(1000);
-        }
-        for (unsigned char i = 0; i < 10; i++)
-        {
-            LCD_BigNumbers(3,i);
-            Wait_ms(1000);
-        }
-        for (unsigned char i = 0; i < 10; i++)
-        {
-            LCD_BigNumbers(7,i);
-            Wait_ms(1000);
-        }
-        for (unsigned char i = 0; i < 10; i++)
-        {
-            LCD_BigNumbers(10,i);
-            Wait_ms(1000);
-        }        
-    }
+    //     for (unsigned char i = 0; i < 10; i++)
+    //     {
+    //         LCD_BigNumbers(0,i);
+    //         Wait_ms(1000);
+    //     }
+    //     for (unsigned char i = 0; i < 10; i++)
+    //     {
+    //         LCD_BigNumbers(3,i);
+    //         Wait_ms(1000);
+    //     }
+    //     for (unsigned char i = 0; i < 10; i++)
+    //     {
+    //         LCD_BigNumbers(7,i);
+    //         Wait_ms(1000);
+    //     }
+    //     for (unsigned char i = 0; i < 10; i++)
+    //     {
+    //         LCD_BigNumbers(10,i);
+    //         Wait_ms(1000);
+    //     }        
+    // }
     //--- Fin LCD Test BigNumbers ---//
     
     //--- Implementacion O3 ---//
@@ -278,6 +282,7 @@ int main(void)
     unsigned short ticker = 60000;
 
     LCD_UtilsInit();
+    LCD_BigNumbersInit();
     
     while (1)
     {
@@ -331,6 +336,8 @@ int main(void)
             if (CheckO3() == SW_NO)
             {
                 LCD_ClearScreen();
+                Lcd_SetDDRAM(14);
+                Lcd_TransmitStr("O3");
                 BuzzerCommands(BUZZER_LONG_CMD, 1);
                 timer_ticker = ticker;
                 RelayOn();
@@ -361,9 +368,31 @@ int main(void)
             //Update del Display timer
             if (last_secs != treatment_running_secs)
             {
-                last_secs = treatment_running_secs;
-                sprintf(s_lcd, "%02d:%02d         O3", treatment_running_mins, treatment_running_secs);
-                LCD_Writel1(s_lcd);
+                last_secs = treatment_running_secs;                
+                sprintf(s_lcd, "%02d", treatment_running_mins);
+                LCD_BigNumbers(0, s_lcd[0] - '0');
+                LCD_BigNumbers(3, s_lcd[1] - '0');
+
+                sprintf(s_lcd, "%02d", treatment_running_secs);
+                LCD_BigNumbers(7, s_lcd[0] - '0');
+                LCD_BigNumbers(10, s_lcd[1] - '0');
+
+                // y los dos puntos en los impares
+                if (last_secs & 0x01)
+                {
+                    Lcd_SetDDRAM(0x06);
+                    Lcd_senddata(0xa5);
+                    Lcd_SetDDRAM(0x46);
+                    Lcd_senddata(0xa5);
+                    
+                }
+                else
+                {
+                    Lcd_SetDDRAM(0x06);
+                    Lcd_senddata(' ');
+                    Lcd_SetDDRAM(0x46);
+                    Lcd_senddata(' ');
+                }
             }
 
             //Update del Display barrita

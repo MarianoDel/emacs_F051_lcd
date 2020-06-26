@@ -489,7 +489,8 @@ void LCD_BigNumbers (unsigned char line1_position, unsigned char number)
         Lcd_SetDDRAM(line2);
         Lcd_senddata(SEG_LAT_IZQ);
         Lcd_senddata(SEG_BARRA_BAJA);
-        Lcd_senddata(SEG_EMPTY);
+        // Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_CORTE_BAJO_DER);
         break;
         
     case 3:
@@ -498,7 +499,8 @@ void LCD_BigNumbers (unsigned char line1_position, unsigned char number)
         Lcd_senddata(SEG_BARRA_ALTA_BAJA);
         Lcd_senddata(SEG_LAT_DER);
         Lcd_SetDDRAM(line2);
-        Lcd_senddata(SEG_EMPTY);
+        // Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_CORTE_BAJO_IZQ);
         Lcd_senddata(SEG_BARRA_BAJA);
         Lcd_senddata(SEG_LAT_DER);                
         break;
@@ -520,7 +522,8 @@ void LCD_BigNumbers (unsigned char line1_position, unsigned char number)
         Lcd_senddata(SEG_BARRA_ALTA_BAJA);
         Lcd_senddata(SEG_CORTE_BAJO_DER);
         Lcd_SetDDRAM(line2);
-        Lcd_senddata(SEG_EMPTY);
+        // Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_CORTE_BAJO_IZQ);
         Lcd_senddata(SEG_BARRA_BAJA);
         Lcd_senddata(SEG_LAT_DER);                
         break;
