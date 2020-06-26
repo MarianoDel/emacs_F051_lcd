@@ -200,5 +200,18 @@ clean:
 	rm -f $(FULL_PRJ).bin
 	rm -f $(SRC:.c=.lst)
 	rm -f $(ASRC:.s=.lst)
+	rm -f *.o
+	rm -f *.out
+
+tests:
+	# primero objetos de los modulos a testear, solo si son tipo HAL sin dependencia del hard
+	# gcc -c src/lcd.c -I. $(INCDIR)
+	# gcc src/tests.c lcd.o
+	# ./a.out
+	# sino copiar funcion a testear al main de tests.c
+	gcc src/tests.c
+	./a.out
+
+
 
 # *** EOF ***

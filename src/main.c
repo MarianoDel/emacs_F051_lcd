@@ -384,7 +384,6 @@ int main(void)
                     Lcd_senddata(0xa5);
                     Lcd_SetDDRAM(0x46);
                     Lcd_senddata(0xa5);
-                    
                 }
                 else
                 {
@@ -405,21 +404,18 @@ int main(void)
                     case 0:
                         Lcd_SetDDRAM (0x4f);
                         Lcd_senddata(0xB0);
-                        // LCD_Writel2("               -");
                         barrita++;
                         break;
 
                     case 1:
                         Lcd_SetDDRAM (0x4f);
                         Lcd_senddata(0x2f);
-                        // LCD_Writel2("               /");
                         barrita++;
                         break;
 
                     case 2:
                         Lcd_SetDDRAM (0x4f);
                         Lcd_senddata(0x7C);
-                        // LCD_Writel2("               -");
                         barrita = 0;
                         break;
 
@@ -428,7 +424,6 @@ int main(void)
                     break;
                 }
             }
-            
 
             //terminacion de tratamiento
             if ((treatment_running_mins == 0) && (treatment_running_secs == 0))
@@ -511,140 +506,6 @@ int main(void)
 
     //--- Fin implementacion O3 ---//
     
-    // ChangeLed(LED_BLINK_3);
-    // while (1)
-    // {
-    //     UpdateLed();
-    // }
-
-    // while (1)
-    // {
-    //     Wait_ms(500);
-    //     if (LED)
-    //         LED_OFF;
-    //     else
-    //         LED_ON;
-    // }
-    
-    //--- Welcome code ---//
-//     LED_OFF;
-//     RELAY_OFF;
-
-//     USART1Config();
-//     USART2Config();
-
-//     EXTIOff();
-
-// //--- Programa de Redonda Basic - Produccion ---
-//     unsigned char led_rssi_high = 0;
-
-//     while (1)
-//     {
-//         switch (main_state)
-//         {
-//         case main_init:
-//             ChangeLed(LED_STANDBY);
-//             RELAY_OFF;
-//             main_state = main_wait_for_gsm_network;
-
-//             //reset de flags del gsm
-//             diag_prender_reset;
-//             diag_ringing_reset;
-
-//             //reset de configuraciones del gsm
-//             envios_ok_change_reset;
-//             timer_rep_change_reset;
-//             prender_ring_change_reset;
-//             break;
-
-//         case main_wait_for_gsm_network:
-//             if (FuncsGSMStateAsk() >= gsm_state_ready)
-//             {
-//                 main_state = main_ready;
-//                 ChangeLed(LED_GSM_NETWORK_LOW_RSSI);
-//             }
-//             break;
-
-//         case main_ready:
-//             if (diag_prender)
-//             {
-//                 diag_prender_reset;
-//                 main_state = main_enable_output;
-//                 RELAY_ON;
-//                 timer_standby = timer_rep * 1000;
-//                 Usart2Send("RELAY ACTIVO\n");
-//             }
-
-//             if ((diag_ringing) &&
-//                 (prender_ring) &&
-//                 (!timer_prender_ringing))
-//             {
-//                 diag_ringing_reset;
-//                 timer_prender_ringing = 12000;
-//                 main_state = main_enable_output;
-//                 RELAY_ON;
-//                 timer_standby = timer_rep * 1000;
-//                 Usart2Send("RELAY ACTIVO\n");
-//             }
-
-//             if (FuncsGSMStateAsk() < gsm_state_ready)
-//             {
-//                 main_state = main_wait_for_gsm_network;
-//                 ChangeLed(LED_STANDBY);
-//             }
-
-//             if ((rssi_level > 10) && (!led_rssi_high))
-//             {
-//                 ChangeLed(LED_GSM_NETWORK_HIGH_RSSI);
-//                 led_rssi_high = 1;
-//             }
-
-//             if ((rssi_level <= 10) && (led_rssi_high))
-//             {
-//                 ChangeLed(LED_GSM_NETWORK_LOW_RSSI);
-//                 led_rssi_high = 0;
-//             }
-
-//             ConfigurationCheck();
-//             break;
-
-//         case main_enable_output:
-//             if (!timer_standby)
-//             {
-//                 main_state = main_ready;
-//                 RELAY_OFF;
-//             }
-
-//             ConfigurationCheck();
-//             break;
-            
-//         // case LAMP_OFF:
-//         //     Usart2Send("PRENDIDO\r\n");
-//         //     FuncsGSMSendSMS("PRENDIDO", mem_conf.num_reportar);
-//         //     LED_ON;
-//         //     break;
-
-
-//         default:
-//             main_state = main_init;
-//             break;
-//         }
-
-//         //Cosas que no dependen del estado del programa
-//         UpdateLed();
-//         // UpdateRelay ();
-//         // UpdatePhotoTransistor();
-//         FuncsGSM();
-//     }	//end while 1
-
-// //---------- Fin Programa de Produccion Redonda Basic--------//
-// #endif	//USE_REDONDA_BASIC
-
-// //---------- Inicio Programa de Produccion Redonda Basic --------//
-
-
-
-
 
     return 0;
 }

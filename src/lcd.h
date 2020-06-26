@@ -17,8 +17,6 @@
 #define PORT_INVERTED				//bit bajo con alto PA0->LCD_D7
 // #define PORT_DIRECT				//pin de puerto bajo dato bajo (ej. PA0 -> LCD_D4 en 4 bits)
 
-typedef unsigned char UINT8;
-
 #define PMASK       0x000F    //ver clear data
 
 // #define LCDClearData GPIOA->BSRR = 0x000F0000	//reset PA3..PA0
@@ -53,8 +51,8 @@ void Lcd_WritePort (unsigned char);
 void Lcd_Delay(unsigned short);
 void Lcd_Command (unsigned char);
 void Lcd_TransmitStr(const char * pStr);
-// void LCDStartTransmit(UINT8 cData);
-void Lcd_TransmitArray(UINT8 *pStr, UINT8 length);
+// void LCDStartTransmit(unsigned char cData);
+void Lcd_TransmitArray(unsigned char *pStr, unsigned char length);
 void Lcd_sendcommand (unsigned char);
 void Lcd_senddata (unsigned char);
 // void Lcd_SetDDRAM (unsigned char addr);
@@ -68,9 +66,7 @@ void LCD_callback (void);
 void LcdSetDDRAMSM (unsigned char addr);
 #endif
 
-#ifdef PORT_INVERTED
 unsigned char SwapNibble (unsigned char);
-#endif
 
 
 /*++++++++++++++++++++++++++++++ DON´T MODIFY +++++++++++++++++++++++++++++++*/
@@ -90,12 +86,12 @@ unsigned char SwapNibble (unsigned char);
 void  LCDInit(void);           /* Initialize the LCD                         */
 void  LCDClear(void);          /* Clear the LCD                              */
 void  LCD2L(void);             /* Go to second line of LCD                   */
-void  LCDPrint(UINT8 *where, UINT8 length); /* Print from [where] memory     */
+void  LCDPrint(unsigned char *where, unsigned char length); /* Print from [where] memory     */
                                /*      address [length] characters           */
 void  LCDTimeBase(void);       /* Time Base of LCD. This must be called      */
                                /*     each time that timerLCD is equal to 0  */
-UINT8 LCDStatus(void);         /* Return the status of the LCD               */
-void  LCDCursor(UINT8 ddramAddress); /* Send the address that you can put    */
+unsigned char LCDStatus(void);         /* Return the status of the LCD               */
+void  LCDCursor(unsigned char ddramAddress); /* Send the address that you can put    */
                                      /*        the cursor                    */
 void LCDSend(void);                                     
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/

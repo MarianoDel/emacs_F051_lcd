@@ -39,15 +39,15 @@ volatile unsigned char lcd_state_cmd = 0;
 #define cInactive   0
 
 /* Variables used with the main program */
-UINT8   timerLCD;       /* Variable for delay times                          */
+unsigned char   timerLCD;       /* Variable for delay times                          */
 
 /* Local variables */
-UINT8    LCDInternalStatus = 0; /* Variable for internal status              */
-UINT8   howmany;        /* Temporal variable that have the number of         */
+unsigned char    LCDInternalStatus = 0; /* Variable for internal status              */
+unsigned char   howmany;        /* Temporal variable that have the number of         */
                         /*      characters pending to print                  */
-UINT8   *nextchr;       /* Pointer to next character to print                */
+unsigned char   *nextchr;       /* Pointer to next character to print                */
 
-//UINT8 memstr[40];
+//unsigned char memstr[40];
 
 /* Local functions */
 void   LCDPrintNext(void); /* Function that print the next character and     */
@@ -427,9 +427,9 @@ void Lcd_SetDDRAM (unsigned char addr)   //datos validos 100ns despues de que E 
 }
 */    
   
-void LCDTransmitArray(UINT8 *pStr, UINT8 length)
+void LCDTransmitArray(unsigned char *pStr, unsigned char length)
 {
-    UINT8 i;
+    unsigned char i;
     for (i=0; i<length; i++)
     {
         Lcd_senddata(pStr[i]);
@@ -440,7 +440,7 @@ void LCDTransmitArray(UINT8 *pStr, UINT8 length)
 
 //Transmision 8 bits
 /*
-void LCDsenddata(UINT8 cData)
+void LCDsenddata(unsigned char cData)
 {
   //mando el caracter
   lcdPort = cData;
@@ -527,7 +527,7 @@ void LCD2L(void)
   }
   
   /* Display a string with a specific length */
-  void LCDPrint(UINT8 *where, UINT8 length) {
+  void LCDPrint(unsigned char *where, unsigned char length) {
 
     if (LCDInternalStatus == lcdStatusReady) {
       if (length > 0) {
@@ -558,14 +558,14 @@ void LCD2L(void)
   }
   
   /* Return the status of LCD Drive */
-  UINT8 LCDStatus(void) {
+  unsigned char LCDStatus(void) {
   
     return LCDInternalStatus;
     
   }
   
   /* Sets the cursor in the display ddramAddress */
-void LCDCursor(UINT8 ddramAddress)
+void LCDCursor(unsigned char ddramAddress)
 {
   
     if (LCDInternalStatus == lcdStatusReady) {
@@ -642,7 +642,7 @@ unsigned char SwapNibble (unsigned char a)
 	return result;
 }
 /*
-void LCDTransmitSM(UINT8 *pStr)
+void LCDTransmitSM(unsigned char *pStr)
 {
     //necesito global p2Str y lcd_state
     //maquina de estado para enviar strings
