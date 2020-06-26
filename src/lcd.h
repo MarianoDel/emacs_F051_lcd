@@ -52,10 +52,14 @@ void Lcd_WritePort (unsigned char);
 
 void Lcd_Delay(unsigned short);
 void Lcd_Command (unsigned char);
-void LCDTransmitStr(const char * pStr);
-void LCDStartTransmit(UINT8 cData);
-void LCDTransmitArray(UINT8 *pStr, UINT8 length);
-void Lcd_SetDDRAM (unsigned char addr);
+void Lcd_TransmitStr(const char * pStr);
+// void LCDStartTransmit(UINT8 cData);
+void Lcd_TransmitArray(UINT8 *pStr, UINT8 length);
+void Lcd_sendcommand (unsigned char);
+void Lcd_senddata (unsigned char);
+// void Lcd_SetDDRAM (unsigned char addr);
+#define Lcd_SetDDRAM(X)    Lcd_sendcommand((X)|0x80)
+#define Lcd_SetCGRAM(X)    Lcd_sendcommand((X)|0x40)
 
 #ifdef WITH_STATE_MACHINE
 void LCDTransmitSM(void);

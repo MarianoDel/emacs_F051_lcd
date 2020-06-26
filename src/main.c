@@ -208,7 +208,58 @@ int main(void)
     // }
     //--- Fin LCD Tests ---//
 
+    //--- LCD Test CGRAM ---//
+    // LCD_UtilsInit();
+    // LCD_BigNumbersInit();
+    // while (1)
+    // {
+    //     LCD_ClearScreen();
+    //     LCD_1ER_RENGLON;
+    //     Lcd_senddata(0x00);
+    //     Lcd_senddata(0x01);
+    //     Lcd_senddata(0x02);
 
+        
+    //     LCD_2DO_RENGLON;
+    //     Lcd_senddata(0x00);
+    //     Lcd_senddata(0x03);        
+    //     Lcd_senddata(0x02);
+    //     Lcd_senddata(0x04);
+    //     Wait_ms(1000);
+
+    // }
+    // --- Fin LCD Test CGRAM ---//
+
+    //--- LCD Test BigNumbers ---//
+    LCD_UtilsInit();
+    LCD_BigNumbersInit();
+    while (1)
+    {
+        LCD_ClearScreen();
+        
+        for (unsigned char i = 0; i < 10; i++)
+        {
+            LCD_BigNumbers(0,i);
+            Wait_ms(1000);
+        }
+        for (unsigned char i = 0; i < 10; i++)
+        {
+            LCD_BigNumbers(3,i);
+            Wait_ms(1000);
+        }
+        for (unsigned char i = 0; i < 10; i++)
+        {
+            LCD_BigNumbers(7,i);
+            Wait_ms(1000);
+        }
+        for (unsigned char i = 0; i < 10; i++)
+        {
+            LCD_BigNumbers(10,i);
+            Wait_ms(1000);
+        }        
+    }
+    //--- Fin LCD Test BigNumbers ---//
+    
     //--- Implementacion O3 ---//
     
     main_state_t main_state = MAIN_INIT;
@@ -324,21 +375,21 @@ int main(void)
                 {
                     case 0:
                         Lcd_SetDDRAM (0x4f);
-                        LCDStartTransmit(0xB0);
+                        Lcd_senddata(0xB0);
                         // LCD_Writel2("               -");
                         barrita++;
                         break;
 
                     case 1:
                         Lcd_SetDDRAM (0x4f);
-                        LCDStartTransmit(0x2f);
+                        Lcd_senddata(0x2f);
                         // LCD_Writel2("               /");
                         barrita++;
                         break;
 
                     case 2:
                         Lcd_SetDDRAM (0x4f);
-                        LCDStartTransmit(0x7C);
+                        Lcd_senddata(0x7C);
                         // LCD_Writel2("               -");
                         barrita = 0;
                         break;

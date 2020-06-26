@@ -212,115 +212,108 @@ void LCDInit(void)
 //Comandos LCD 4 bits
 void Lcd_Command (unsigned char cmd)
 {
-   switch (cmd)
-   {
+    switch (cmd)
+    {
     case CLEAR:
-      //lcdPort &= PMASK;                   //Reseteo Cursor y DDRAM
-      LCDClearData;
-      LCDSend();
-      Lcd_Delay(30);
-      //lcdPort &= PMASK;
-      //LCDClearData;
-      //lcdPort |= 0x01;
-      Lcd_WritePort (0x01);
-      LCDSend();    
-      Wait_ms(30);
-      break;
+        //lcdPort &= PMASK;                   //Reseteo Cursor y DDRAM
+        LCDClearData;
+        LCDSend();
+        Lcd_Delay(30);
+        //lcdPort &= PMASK;
+        //LCDClearData;
+        //lcdPort |= 0x01;
+        Lcd_WritePort (0x01);
+        LCDSend();    
+        Wait_ms(30);
+        break;
 
     case RET_HOME:
-      //lcdPort &= PMASK;                   //Reseteo cursor a primer posicion
-      LCDClearData;
-      LCDSend();
-      Lcd_Delay(30);
-      //lcdPort &= PMASK;
-      //LCDClearData;
-      //lcdPort |= 0x02;
-      Lcd_WritePort (0x02);
-      LCDSend();    
-      Wait_ms(30);
-      break;
+        //lcdPort &= PMASK;                   //Reseteo cursor a primer posicion
+        LCDClearData;
+        LCDSend();
+        Lcd_Delay(30);
+        //lcdPort &= PMASK;
+        //LCDClearData;
+        //lcdPort |= 0x02;
+        Lcd_WritePort (0x02);
+        LCDSend();    
+        Wait_ms(30);
+        break;
 
     case DISPLAY_ON:
-      //lcdPort &= PMASK;
-      LCDClearData;
-      LCDSend();
-      Lcd_Delay(30);
-      //lcdPort &= PMASK;
-      //LCDClearData;
-      //lcdPort |= 0x0c;
-      Lcd_WritePort (0x0c);
-      LCDSend();
-      Wait_ms(30);
-      break;
+        //lcdPort &= PMASK;
+        LCDClearData;
+        LCDSend();
+        Lcd_Delay(30);
+        //lcdPort &= PMASK;
+        //LCDClearData;
+        //lcdPort |= 0x0c;
+        Lcd_WritePort (0x0c);
+        LCDSend();
+        Wait_ms(30);
+        break;
 
     case DISPLAY_OFF:
-      //lcdPort &= PMASK;
-      LCDClearData;
-      LCDSend();
-      Lcd_Delay(30);
-      //lcdPort &= PMASK;
-      //LCDClearData;
-      //lcdPort |= 0x08;
-      Lcd_WritePort (0x08);
-      LCDSend();
-      Wait_ms(30);
-      break;
+        //lcdPort &= PMASK;
+        LCDClearData;
+        LCDSend();
+        Lcd_Delay(30);
+        //lcdPort &= PMASK;
+        //LCDClearData;
+        //lcdPort |= 0x08;
+        Lcd_WritePort (0x08);
+        LCDSend();
+        Wait_ms(30);
+        break;
       
     case CURSOR_ON:
-      //lcdPort &= PMASK;
-      LCDClearData;
-      LCDSend();
-      Lcd_Delay(30);
-      //lcdPort &= PMASK;
-      //LCDClearData;
-      //lcdPort |= 0x0e;
-      Lcd_WritePort (0x0e);
-      LCDSend();
-      Wait_ms(30);
-      break;
+        //lcdPort &= PMASK;
+        LCDClearData;
+        LCDSend();
+        Lcd_Delay(30);
+        //lcdPort &= PMASK;
+        //LCDClearData;
+        //lcdPort |= 0x0e;
+        Lcd_WritePort (0x0e);
+        LCDSend();
+        Wait_ms(30);
+        break;
 
     case CURSOR_OFF:
-      //lcdPort &= PMASK;
-      LCDClearData;
-      LCDSend();
-      Lcd_Delay(30);
-      //lcdPort &= PMASK;
-      //LCDClearData;
-      //lcdPort |= 0x0c;                     //siempre con display on
-      Lcd_WritePort (0x0c);
-      LCDSend();
-      Wait_ms(30);
-      break;
+        LCDClearData;
+        LCDSend();
+        Lcd_Delay(30);
+        Lcd_WritePort (0x0c);
+        LCDSend();
+        // Lcd_sendcommand(0x0c);
+        Wait_ms(30);
+        break;
 
     case BLINK_ON:
-      //lcdPort &= PMASK;
-      LCDClearData;
-      LCDSend();
-      Lcd_Delay(30);
-      //lcdPort &= PMASK;
-      //LCDClearData;
-      //lcdPort |= 0x0f;                     //siempre con display on cursor on
-      Lcd_WritePort (0x0f);
-      LCDSend();
-      Wait_ms(30);
-      break;
+        //lcdPort &= PMASK;
+        LCDClearData;
+        LCDSend();
+        Lcd_Delay(30);
+        //lcdPort &= PMASK;
+        //LCDClearData;
+        //lcdPort |= 0x0f;                     //siempre con display on cursor on
+        Lcd_WritePort (0x0f);
+        LCDSend();
+        Wait_ms(30);
+        break;
 
     case BLINK_OFF:
-      //lcdPort &= PMASK;
     	LCDClearData;
-      LCDSend();
-      Lcd_Delay(30);
-      //lcdPort &= PMASK;
-      //LCDClearData;
-      //lcdPort |= 0x0c;                     //siempre con display on cursor on
-      Lcd_WritePort (0x0c);
-      LCDSend();
-      Wait_ms(30);
-      break;
+        LCDSend();
+        Lcd_Delay(30);
+        Lcd_WritePort (0x0c);
+        LCDSend();
+        Wait_ms(30);
+        break;
       
     default:
-      break;
-   }
+        break;
+    }
 }
 
 
@@ -384,27 +377,42 @@ void Lcd_Command (unsigned char cmd)
 }
 */
 
-//Set RAM 4 bits
-void Lcd_SetDDRAM (unsigned char addr)   //datos validos 100ns despues de que E sube
+void Lcd_sendcommand (unsigned char cmd)
 {
-  unsigned char b;
-  addr |= 0x80;
-  b = addr;
-  b >>= 4;
-  //lcdPort &= PMASK;
-  //LCDClearData;
-  //lcdPort |= b;
-  Lcd_WritePort (b);
-  LCDSend();
-  Lcd_Delay(30);
-  b = addr;
-  b &= 0x0F;
-  //lcdPort &= PMASK;
-  //LCDClearData;
-  //lcdPort |= b;
-  Lcd_WritePort (b);
-  LCDSend();
-  Lcd_Delay(30);       //con 30 67us; con 10 29us
+    unsigned char c = 0;
+
+    c = cmd;
+    c >>= 4;
+    Lcd_WritePort (c);
+    LCDSend();
+    Lcd_Delay(30);
+    
+    c = cmd;
+    c &= 0x0F;
+    Lcd_WritePort (c);
+    LCDSend();
+    Lcd_Delay(30);       //con 30 67us; con 10 29us
+}
+
+
+//Transmision 4 bits
+void Lcd_senddata (unsigned char cData)
+{
+    unsigned char b = 0;
+
+    LCD_RS_ON;
+    b = cData;
+    b >>= 4;
+    Lcd_WritePort (b);
+    LCDSend();
+    Lcd_Delay(30);
+
+    b = cData;
+    b &= 0x0F;  
+    Lcd_WritePort (b);
+    LCDSend();
+    Lcd_Delay(30);       //con 30 67us; con 10 29us
+    LCD_RS_OFF;
 }
 
 
@@ -424,41 +432,15 @@ void LCDTransmitArray(UINT8 *pStr, UINT8 length)
     UINT8 i;
     for (i=0; i<length; i++)
     {
-        LCDStartTransmit(pStr[i]);
+        Lcd_senddata(pStr[i]);
     }
 }
 
 
-//Transmision 4 bits
-void LCDStartTransmit(UINT8 cData)
-{
-    unsigned char b;
-    //mando el caracter
-    //lcdRS = 1;
-    LCD_RS_ON;
-    b = cData;
-    b >>= 4;
-    //lcdPort &= PMASK;
-    //LCDClearData;
-    //lcdPort |= b;
-    Lcd_WritePort (b);
-    LCDSend();
-    Lcd_Delay(30);
-    b = cData;
-    b &= 0x0F;  
-    //lcdPort &= PMASK;
-    //LCDClearData;
-    //lcdPort |= b;
-    Lcd_WritePort (b);
-    LCDSend();
-    Lcd_Delay(30);       //con 30 67us; con 10 29us
-    //lcdRS = 0;
-    LCD_RS_OFF;
-}
 
 //Transmision 8 bits
 /*
-void LCDStartTransmit(UINT8 cData)
+void LCDsenddata(UINT8 cData)
 {
   //mando el caracter
   lcdPort = cData;
@@ -469,11 +451,11 @@ void LCDStartTransmit(UINT8 cData)
 }
 */
 
-void LCDTransmitStr(const char * pStr)
+void Lcd_TransmitStr(const char * pStr)
 {
     while (*pStr != 0)
     {
-        LCDStartTransmit(*pStr);
+        Lcd_senddata(*pStr);
         pStr++;
     }
 }

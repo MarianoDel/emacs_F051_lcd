@@ -119,23 +119,23 @@ void LCD_UpdateTimer (void)
 void LCD_ClearScreen (void)
 {
     LCD_1ER_RENGLON;
-    LCDTransmitStr((const char *)s_blank);
+    Lcd_TransmitStr((const char *)s_blank);
     LCD_2DO_RENGLON;
-    LCDTransmitStr((const char *)s_blank);
+    Lcd_TransmitStr((const char *)s_blank);
 }
 
 
 void LCD_Writel1 (char * l1)
 {
     LCD_1ER_RENGLON;
-    LCDTransmitStr(l1);
+    Lcd_TransmitStr(l1);
 }
 
 
 void LCD_Writel2 (char * l2)
 {
     LCD_2DO_RENGLON;
-    LCDTransmitStr(l2);
+    Lcd_TransmitStr(l2);
 }
 
 
@@ -171,9 +171,9 @@ resp_t LCD_ShowBlink (const char * p_text1, const char * p_text2, unsigned char 
             {
                 blinking_how_many--;
                 LCD_1ER_RENGLON;
-                LCDTransmitStr(p_text1);
+                Lcd_TransmitStr(p_text1);
                 LCD_2DO_RENGLON;
-                LCDTransmitStr(p_text2);
+                Lcd_TransmitStr(p_text2);
                 show_select_timer = TT_BLINKING_IN_ON;
                 blinking_state = BLINKING_SPACE_D;
             }
@@ -189,9 +189,9 @@ resp_t LCD_ShowBlink (const char * p_text1, const char * p_text2, unsigned char 
         if (!show_select_timer)
         {
             LCD_1ER_RENGLON;
-            LCDTransmitStr((const char *) s_blank);
+            Lcd_TransmitStr((const char *) s_blank);
             LCD_2DO_RENGLON;
-            LCDTransmitStr((const char *) s_blank);
+            Lcd_TransmitStr((const char *) s_blank);
             show_select_timer = TT_BLINKING_IN_OFF;
             blinking_state = BLINKING_MARK_D;
         }
@@ -204,16 +204,16 @@ resp_t LCD_ShowBlink (const char * p_text1, const char * p_text2, unsigned char 
             {
                 blinking_how_many--;
                 LCD_1ER_RENGLON;
-                LCDTransmitStr(p_text1);
+                Lcd_TransmitStr(p_text1);
                 LCD_2DO_RENGLON;
-                LCDTransmitStr((const char *) s_blank);
+                Lcd_TransmitStr((const char *) s_blank);
                 show_select_timer = TT_BLINKING_IN_ON;
                 blinking_state = BLINKING_SPACE_C;
             }
             else
             {
                 LCD_1ER_RENGLON;
-                LCDTransmitStr((const char *) s_blank);
+                Lcd_TransmitStr((const char *) s_blank);
                 blinking_state = BLINKING_INIT;
                 resp = resp_finish;
             }
@@ -224,9 +224,9 @@ resp_t LCD_ShowBlink (const char * p_text1, const char * p_text2, unsigned char 
         if (!show_select_timer)
         {
             LCD_1ER_RENGLON;
-            LCDTransmitStr((const char *) s_blank);
+            Lcd_TransmitStr((const char *) s_blank);
             LCD_2DO_RENGLON;
-            LCDTransmitStr(p_text2);
+            Lcd_TransmitStr(p_text2);
             show_select_timer = TT_BLINKING_IN_ON;
             blinking_state = BLINKING_MARK_C;
         }
@@ -234,9 +234,9 @@ resp_t LCD_ShowBlink (const char * p_text1, const char * p_text2, unsigned char 
 
     case BLINKING_MARK_N:
         LCD_1ER_RENGLON;
-        LCDTransmitStr(p_text1);
+        Lcd_TransmitStr(p_text1);
         LCD_2DO_RENGLON;
-        LCDTransmitStr(p_text2);
+        Lcd_TransmitStr(p_text2);
         show_select_timer = TT_BLINKING_IN_ON * how_many;
         blinking_state = BLINKING_SPACE_N;
         break;
@@ -290,11 +290,11 @@ resp_t LCD_Scroll1 (const char * p_text)
             for (i = scroll1_current_window; i < last_window; i++)
             {
                 if (i < LINE_LENGTH)
-                    LCDStartTransmit(' ');
+                    Lcd_senddata(' ');
                 else if (i < (scroll1_last_window - LINE_LENGTH))
-                    LCDStartTransmit(*(p_text + (i - LINE_LENGTH)));
+                    Lcd_senddata(*(p_text + (i - LINE_LENGTH)));
                 else if (i < scroll1_last_window)
-                    LCDStartTransmit(' ');
+                    Lcd_senddata(' ');
                 else
                 {
                     //termine de enviar
@@ -354,11 +354,11 @@ resp_t LCD_Scroll2 (const char * p_text)
             for (i = scroll2_current_window; i < last_window; i++)
             {
                 if (i < LINE_LENGTH)
-                    LCDStartTransmit(' ');
+                    Lcd_senddata(' ');
                 else if (i < (scroll2_last_window - LINE_LENGTH))
-                    LCDStartTransmit(*(p_text + (i - LINE_LENGTH)));
+                    Lcd_senddata(*(p_text + (i - LINE_LENGTH)));
                 else if (i < scroll2_last_window)
-                    LCDStartTransmit(' ');
+                    Lcd_senddata(' ');
                 else
                 {
                     //termine de enviar
@@ -385,7 +385,191 @@ resp_t LCD_Scroll2 (const char * p_text)
     return resp;
 }
 
+#define CGRAM_POS0    0x00
+#define CGRAM_POS1    0x08
+#define CGRAM_POS2    0x10
+#define CGRAM_POS3    0x18
+#define CGRAM_POS4    0x20
+#define CGRAM_POS5    0x28
+#define CGRAM_POS6    0x30
+#define CGRAM_POS7    0x38
 
+unsigned char v_cgram0 [8] = {0x07, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x07 };
+unsigned char v_cgram1 [8] = {0x1f, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+unsigned char v_cgram2 [8] = {0x1c, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1c };
+unsigned char v_cgram3 [8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x1f };
+unsigned char v_cgram4 [8] = {0x1f, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x1f };
+unsigned char v_cgram5 [8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x07 };
+unsigned char v_cgram6 [8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x1c };
+
+void LCD_BigNumbersInit (void)
+{
+    unsigned char i;
+    //inicializo el LCD para manejar numeros grandes
+    Lcd_SetCGRAM(CGRAM_POS0);
+    for (i = 0; i < 8; i++)
+        Lcd_senddata(v_cgram0[i]);
+
+    Lcd_SetCGRAM(CGRAM_POS1);
+    for (i = 0; i < 8; i++)
+        Lcd_senddata(v_cgram1[i]);
+
+    Lcd_SetCGRAM(CGRAM_POS2);
+    for (i = 0; i < 8; i++)
+        Lcd_senddata(v_cgram2[i]);
+
+    Lcd_SetCGRAM(CGRAM_POS3);
+    for (i = 0; i < 8; i++)
+        Lcd_senddata(v_cgram3[i]);
+
+    Lcd_SetCGRAM(CGRAM_POS4);
+    for (i = 0; i < 8; i++)
+        Lcd_senddata(v_cgram4[i]);
+
+    Lcd_SetCGRAM(CGRAM_POS5);
+    for (i = 0; i < 8; i++)
+        Lcd_senddata(v_cgram5[i]);
+
+    Lcd_SetCGRAM(CGRAM_POS6);
+    for (i = 0; i < 8; i++)
+        Lcd_senddata(v_cgram6[i]);
+    
+}
+
+
+#define SEG_LAT_IZQ    0x00
+#define SEG_BARRA_ALTA    0x01
+#define SEG_LAT_DER    0x02
+#define SEG_BARRA_BAJA    0x03
+#define SEG_BARRA_ALTA_BAJA    0x04
+#define SEG_CORTE_BAJO_IZQ    0x05
+#define SEG_CORTE_BAJO_DER    0x06
+
+#define SEG_EMPTY    ' '
+
+
+void LCD_BigNumbers (unsigned char line1_position, unsigned char number)
+{
+    unsigned char line1 = line1_position;
+    unsigned char line2 = 0x40 + line1_position;
+
+    switch (number)
+    {
+    case 0:
+        //usar despues TransmitArray
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_ALTA);
+        Lcd_senddata(SEG_LAT_DER);
+        
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_BAJA);        
+        Lcd_senddata(SEG_LAT_DER);
+        break;
+
+    case 1:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_LAT_DER);
+
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_LAT_DER);
+        break;
+
+    case 2:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_CORTE_BAJO_IZQ);
+        Lcd_senddata(SEG_BARRA_ALTA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);
+
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_BAJA);
+        Lcd_senddata(SEG_EMPTY);
+        break;
+        
+    case 3:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_BARRA_ALTA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_BARRA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);                
+        break;
+
+    case 4:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_LAT_DER);
+        break;
+
+    case 5:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_ALTA_BAJA);
+        Lcd_senddata(SEG_CORTE_BAJO_DER);
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_BARRA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);                
+        break;
+
+    case 6:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_ALTA_BAJA);
+        Lcd_senddata(SEG_CORTE_BAJO_DER);
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);
+        break;
+
+    case 7:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_BARRA_ALTA);
+        Lcd_senddata(SEG_LAT_DER);
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_LAT_DER);                
+        break;
+
+    case 8:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_ALTA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);
+        break;
+
+    case 9:
+        Lcd_SetDDRAM(line1);
+        Lcd_senddata(SEG_LAT_IZQ);
+        Lcd_senddata(SEG_BARRA_ALTA_BAJA);
+        Lcd_senddata(SEG_LAT_DER);
+        Lcd_SetDDRAM(line2);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_EMPTY);
+        Lcd_senddata(SEG_LAT_DER);
+        break;
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////////
 // We need Switches Functions for the following functions CheckS1() & CheckS2() //
@@ -407,18 +591,18 @@ resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
     case SHOW_SELECT_INIT:
         LCD_2DO_RENGLON;
 #ifdef LINE_LENGTH_8
-        LCDTransmitStr((const char *) "Cnt Slct");
+        Lcd_TransmitStr((const char *) "Cnt Slct");
 #endif
 #ifdef LINE_LENGTH_16        
-        // LCDTransmitStr((const char *) "Cont.     Select");
-        LCDTransmitStr((const char *) "SET    or    < >");        
+        // Lcd_TransmitStr((const char *) "Cont.     Select");
+        Lcd_TransmitStr((const char *) "SET    or    < >");        
 #endif        
         show_select_state++;
         break;
 
     case SHOW_SELECT_1:
         LCD_1ER_RENGLON;
-        LCDTransmitStr(p_text);
+        Lcd_TransmitStr(p_text);
         show_select_timer = TT_SHOW_SELECT_IN_ON;
         show_select_state++;
         break;
@@ -427,7 +611,7 @@ resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
         if (!show_select_timer)
         {
             LCD_1ER_RENGLON;
-            LCDTransmitStr((const char *) s_blank);
+            Lcd_TransmitStr((const char *) s_blank);
             show_select_timer = TT_SHOW_SELECT_IN_OFF;
             show_select_state++;
         }
@@ -458,13 +642,13 @@ resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
 
     case SHOW_SELECT_SELECTED:
         LCD_1ER_RENGLON;
-        LCDTransmitStr(p_text);
+        Lcd_TransmitStr(p_text);
         LCD_2DO_RENGLON;
 #ifdef LINE_LENGTH_8
-        LCDTransmitStr((const char *) "Selected");
+        Lcd_TransmitStr((const char *) "Selected");
 #endif
 #ifdef LINE_LENGTH_16
-        LCDTransmitStr((const char *) "Selected...     ");
+        Lcd_TransmitStr((const char *) "Selected...     ");
 #endif        
         show_select_state++;
         break;
@@ -479,13 +663,13 @@ resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
 
     case SHOW_SELECT_CHANGE:
         LCD_1ER_RENGLON;
-        LCDTransmitStr(p_text);
+        Lcd_TransmitStr(p_text);
         LCD_2DO_RENGLON;
 #ifdef LINE_LENGTH_8
-        LCDTransmitStr((const char *) "Changing");
+        Lcd_TransmitStr((const char *) "Changing");
 #endif
 #ifdef LINE_LENGTH_16
-        LCDTransmitStr((const char *) "Changing...     ");
+        Lcd_TransmitStr((const char *) "Changing...     ");
 #endif        
         show_select_state++;
         break;
@@ -524,20 +708,34 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
     {
     case OPTIONS_ONOFF_INIT:
         LCD_1ER_RENGLON;
-        LCDTransmitStr(primer_renglon);
+        Lcd_TransmitStr(primer_renglon);
         LCD_2DO_RENGLON;
-        LCDTransmitStr((const char *) "SET    or    < >");        
+        Lcd_TransmitStr((const char *) "SET    or    < >");        
 
         options_curr_sel = *bool_value;
         show_select_timer = 0;        
-        options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
+        options_state = OPTIONS_ONOFF_REDRAW;
         break;
 
+    case OPTIONS_ONOFF_REDRAW:
+        Lcd_SetDDRAM(12);
+        if (options_curr_sel)
+            Lcd_TransmitStr(" ON ");
+        else
+            Lcd_TransmitStr(" OFF");
 
+        //espero que liberen switch para avanzar
+        if (actions == selection_none)    
+        {
+            show_select_timer = TT_SHOW_SELECT_IN_ON;
+            options_state = OPTIONS_ONOFF_WAIT_IN_ON;
+        }
+        break;
+        
     case OPTIONS_ONOFF_WAIT_IN_ON:
         if ((actions == selection_up) || (actions == selection_dwn))
         {
-            options_state = OPTIONS_ONOFF_CHANGE_OPTION;
+            options_state = OPTIONS_ONOFF_REDRAW;
             if (options_curr_sel)
                 options_curr_sel = 0;
             else
@@ -547,14 +745,14 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         if (actions == selection_enter)
         {
             LCD_2DO_RENGLON;
-            LCDTransmitStr((const char *) "Selected...     ");
+            Lcd_TransmitStr((const char *) "Selected...     ");
             options_state = OPTIONS_ONOFF_SELECT_OPTION;
         }
 
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(12);
-            LCDTransmitStr("    ");
+            Lcd_TransmitStr("    ");
             
             show_select_timer = TT_SHOW_SELECT_IN_OFF;
             options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
@@ -562,50 +760,25 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         break;
 
     case OPTIONS_ONOFF_WAIT_IN_OFF:
-        if ((actions == selection_up) || (actions == selection_dwn))
+        // si hay alguna seleccion en off paso a ON
+        if ((actions == selection_up) ||
+            (actions == selection_dwn) ||
+            (actions == selection_enter))
         {
-            options_state = OPTIONS_ONOFF_CHANGE_OPTION;
-            if (options_curr_sel)
-                options_curr_sel = 0;
-            else
-                options_curr_sel = 1;
-        }
-
-        if (actions == selection_enter)
-        {
-            LCD_2DO_RENGLON;
-            LCDTransmitStr((const char *) "Selected...     ");
-            options_state = OPTIONS_ONOFF_SELECT_OPTION;
-        }
-
-        if (!show_select_timer)
-        {
-            Lcd_SetDDRAM(12);
-            if (options_curr_sel)
-                LCDTransmitStr(" ON ");
-            else
-                LCDTransmitStr(" OFF");
-
-            show_select_timer = TT_SHOW_SELECT_IN_ON;
             options_state = OPTIONS_ONOFF_WAIT_IN_ON;
+        }
+        else if (!show_select_timer)
+        {
+            options_state = OPTIONS_ONOFF_REDRAW;
         }
         break;
         
-
     case OPTIONS_ONOFF_SELECT_OPTION:
         if (actions == selection_none)
         {
             *bool_value = options_curr_sel;
             options_state = OPTIONS_INIT;                
             resp = resp_finish;
-        }
-        break;
-
-    case OPTIONS_ONOFF_CHANGE_OPTION:
-        if (actions == selection_none)
-        {
-            options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
-            show_select_timer = 0;
         }
         break;
 
@@ -639,9 +812,9 @@ resp_t LCD_EncoderChange (char * primer_renglon,
     {
     case CHANGE_INIT:
         LCD_1ER_RENGLON;
-        LCDTransmitStr(primer_renglon);
+        Lcd_TransmitStr(primer_renglon);
         LCD_2DO_RENGLON;
-        LCDTransmitStr((const char *) "SET    or    < >");        
+        Lcd_TransmitStr((const char *) "SET    or    < >");        
 
         change_current_val = *orig_value;
         show_select_timer = 0;        
@@ -659,7 +832,7 @@ resp_t LCD_EncoderChange (char * primer_renglon,
 
             show_select_timer = TT_SHOW_SELECT_IN_ON;
             LCD_2DO_RENGLON;
-            LCDTransmitStr((const char *) "SET    or    ++>");                    
+            Lcd_TransmitStr((const char *) "SET    or    ++>");                    
         }
 
         if (actions == selection_dwn) 
@@ -672,22 +845,22 @@ resp_t LCD_EncoderChange (char * primer_renglon,
 
             show_select_timer = TT_SHOW_SELECT_IN_ON;
             LCD_2DO_RENGLON;
-            LCDTransmitStr((const char *) "SET    or    <--");
+            Lcd_TransmitStr((const char *) "SET    or    <--");
         }
 
         if (actions == selection_enter)
         {
             LCD_2DO_RENGLON;
-            LCDTransmitStr((const char *) "Selected...     ");
+            Lcd_TransmitStr((const char *) "Selected...     ");
             change_state = CHANGE_SELECT_DONE;
         }
         
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
-            LCDTransmitStr("  ");
+            Lcd_TransmitStr("  ");
             LCD_2DO_RENGLON;
-            LCDTransmitStr((const char *) "SET    or    < >");        
+            Lcd_TransmitStr((const char *) "SET    or    < >");        
             show_select_timer = TT_SHOW_SELECT_IN_OFF;
             change_state = CHANGE_WAIT_SELECT_IN_OFF;
         }
@@ -712,7 +885,7 @@ resp_t LCD_EncoderChange (char * primer_renglon,
     case CHANGE_SHOW_AGAIN:
         Lcd_SetDDRAM(14);    //TODO: ver esto despues, pasarlo como info en estructura
         sprintf(s_current, "%02d", change_current_val);
-        LCDTransmitStr(s_current);
+        Lcd_TransmitStr(s_current);
         change_state = CHANGE_WAIT_SELECT_IN_ON;
         break;
 
@@ -769,9 +942,9 @@ unsigned char FuncOptions (const char * p_text1, const char * p_text2,
     {
     case OPTIONS_INIT:
         LCD_1ER_RENGLON;
-        LCDTransmitStr(p_text1);
+        Lcd_TransmitStr(p_text1);
         LCD_2DO_RENGLON;
-        LCDTransmitStr(p_text2);
+        Lcd_TransmitStr(p_text2);
         show_select_timer = 0;
         options_state++;
         break;
@@ -780,7 +953,7 @@ unsigned char FuncOptions (const char * p_text1, const char * p_text2,
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(*(p_sel + options_curr_sel));
-            LCDTransmitStr("*");
+            Lcd_TransmitStr("*");
             show_select_timer = TT_SHOW_SELECT_IN_ON;
             options_state++;
         }
@@ -801,7 +974,7 @@ unsigned char FuncOptions (const char * p_text1, const char * p_text2,
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(*(p_sel + options_curr_sel));
-            LCDTransmitStr(" ");
+            Lcd_TransmitStr(" ");
             show_select_timer = TT_SHOW_SELECT_IN_OFF;
             options_state = OPTIONS_WAIT_SELECT_3;
         }
@@ -829,7 +1002,7 @@ unsigned char FuncOptions (const char * p_text1, const char * p_text2,
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(*(p_sel + options_curr_sel));
-            LCDTransmitStr("*");
+            Lcd_TransmitStr("*");
             show_select_timer = TT_SHOW_SELECT_IN_ON;
             options_state = OPTIONS_WAIT_SELECT_1;
         }
@@ -845,7 +1018,7 @@ unsigned char FuncOptions (const char * p_text1, const char * p_text2,
 
     case OPTIONS_CHANGE_SELECT:
         Lcd_SetDDRAM(*(p_sel + options_curr_sel));
-        LCDTransmitStr(" ");
+        Lcd_TransmitStr(" ");
 
         if (first_option & 0x80)	//me piden que elija una opcion especial
             options_curr_sel = (first_option & 0x7F);
@@ -858,7 +1031,7 @@ unsigned char FuncOptions (const char * p_text1, const char * p_text2,
         }
 
         Lcd_SetDDRAM(*(p_sel + options_curr_sel));
-        LCDTransmitStr("*");
+        Lcd_TransmitStr("*");
 
         options_state = OPTIONS_WAIT_SELECT_2;
         break;
@@ -885,15 +1058,15 @@ unsigned char FuncOptionsOnOff (unsigned char * bool_value)
     case OPTIONS_ONOFF_INIT:
 #ifdef LINE_LENGTH_8
         LCD_1ER_RENGLON;        
-        LCDTransmitStr((const char *) "on of e ");
+        Lcd_TransmitStr((const char *) "on of e ");
         LCD_2DO_RENGLON;
-        LCDTransmitStr((const char*)"chg  sel");
+        Lcd_TransmitStr((const char*)"chg  sel");
 #endif
 #ifdef LINE_LENGTH_16
         LCD_1ER_RENGLON;
-        LCDTransmitStr((const char *) "on  off   done ");
+        Lcd_TransmitStr((const char *) "on  off   done ");
         LCD_2DO_RENGLON;
-        LCDTransmitStr((const char *) "change    select");
+        Lcd_TransmitStr((const char *) "change    select");
 #endif
 
         options_mark = *bool_value;
@@ -910,11 +1083,11 @@ unsigned char FuncOptionsOnOff (unsigned char * bool_value)
     case OPTIONS_ONOFF_REDRAW:
         //borro asteriscos
         Lcd_SetDDRAM(*(s_sel_up_down));
-        LCDTransmitStr(" ");
+        Lcd_TransmitStr(" ");
         Lcd_SetDDRAM(*(s_sel_up_down + 1));
-        LCDTransmitStr(" ");
+        Lcd_TransmitStr(" ");
         Lcd_SetDDRAM(*(s_sel_up_down + 2));
-        LCDTransmitStr(" ");
+        Lcd_TransmitStr(" ");
 
         //redibujo seleccion y current
         if (options_mark)
@@ -922,9 +1095,9 @@ unsigned char FuncOptionsOnOff (unsigned char * bool_value)
         else
             Lcd_SetDDRAM(*(s_sel_up_down + 1));
 
-        LCDTransmitStr("*");        
+        Lcd_TransmitStr("*");        
         Lcd_SetDDRAM(*(s_sel_up_down + options_curr_sel));
-        LCDTransmitStr("*");
+        Lcd_TransmitStr("*");
 
         show_select_timer = TT_SHOW_SELECT_IN_ON;
         options_state = OPTIONS_ONOFF_WAIT_IN_ON;
@@ -946,7 +1119,7 @@ unsigned char FuncOptionsOnOff (unsigned char * bool_value)
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(*(s_sel_up_down + options_curr_sel));
-            LCDTransmitStr(" ");
+            Lcd_TransmitStr(" ");
             show_select_timer = TT_SHOW_SELECT_IN_OFF;
             options_state = OPTIONS_ONOFF_WAIT_IN_OFF;
         }
@@ -967,7 +1140,7 @@ unsigned char FuncOptionsOnOff (unsigned char * bool_value)
         if (!show_select_timer)
         {
             Lcd_SetDDRAM(*(s_sel_up_down + options_curr_sel));
-            LCDTransmitStr("*");
+            Lcd_TransmitStr("*");
             show_select_timer = TT_SHOW_SELECT_IN_ON;
             options_state = OPTIONS_ONOFF_WAIT_IN_ON;
         }
