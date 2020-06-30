@@ -4,7 +4,7 @@
 // ## @TAGS:   Global
 // ## @CPU:    TEST PLATFORM FOR FIRMWARE
 // ##
-// #### TEST.C ################################
+// #### TESTS.C ###############################
 //---------------------------------------------
 
 // Includes Modules for tests --------------------------------------------------
@@ -27,7 +27,7 @@ int main (int argc, char *argv[])
     printf("Test Nibble swaping\n");
     for (unsigned char i = 0; i < 0x0f; i++)
     {
-        printf("%x %x\n", i, SwapNibble(i));
+        printf("0x%02x 0x%02x\n", i, SwapNibble(i));
     }
     
     printf("Test Ended\n");
